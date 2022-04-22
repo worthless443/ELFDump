@@ -3,7 +3,7 @@
 
 #include<elff.h>
 
-// TODO organize 
+// TODO organize, clean
 
 struct entry_stuff {
 	int x,y,z,h,i;
