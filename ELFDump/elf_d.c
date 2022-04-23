@@ -103,7 +103,7 @@ char* get_index(char *data, int index) {
 	ELF64_ProgramHeaderEntryRef pheader = get_program_entry_ref(&file, index)	;
 	char *nic = (char*)pheader;
 	ELF64_SymbolTableEntryRef entry = mk_sym(&file, section, index);
-	printf("%d\n",ELF64_SymbolTableEntryGetObjectSize(entry));
+	printf("%d\n",ELF64_SymbolTableEntryGetNameOffset(entry));
 
 	struct program_header_specs specs;
 	create_hdr_specs(pheader, &specs);
