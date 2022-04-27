@@ -9,21 +9,46 @@ struct entry_stuff {
 	int x,y,z,h,i;
 };
 
+struct callers {
+	char* (*f1)(ELF64_ProgramHeaderEntryRef);
+	int (*f2)(ELF64_ProgramHeaderEntryRef);
+	char (*f3)(ELF64_ProgramHeaderEntryRef);
+	char (*f4)(ELF64_ProgramHeaderEntryRef);
+	int (*f5)(ELF64_ProgramHeaderEntryRef);
+};
 struct program_header_specs {
-	const char* Entrytype;	
-	int Attrs;	
-	const char *AttrsString;	
-	const char *EntryTypestring;	
-	int  FileSize;
+	char* Entrytype;	
+	int *Attrs;	
+	char *AttrsString;	
+	char *EntryTypestring;	
+	int  *FileSize;
 };
 
-void create_hdr_specs(ELF64_ProgramHeaderEntryRef pheader, struct  program_header_specs *specs) {
-	struct program_header_specs sp;
-	specs->Entrytype= ELF64_ProgramHeaderEntryGetTypeString(pheader);
-	specs->Attrs = ELF64_ProgramHeaderEntryGetAttributes(pheader);
-	specs->AttrsString = ELF64_ProgramHeaderEntryGetAttributesString(pheader);
-	specs->EntryTypestring =  ELF64_ProgramHeaderEntryGetTypeString(pheader);
-	specs->FileSize = ELF64_ProgramHeaderEntryGetFileSize(pheader);
+
+void mk_callers(struct callers *funcs) {
+	funcs->f1 = 	ELF64_ProgramHeaderEntryGetTypeString;
+	funcs->f2 = ELF64_ProgramHeaderEntryGetAttributes;
+	funcs->f3 = ELF64_ProgramHeaderEntryGetAttributesString;
+	funcs->f4 = ELF64_ProgramHeaderEntryGetTypeString;
+	funcs->f5 = ELF64_ProgramHeaderEntryGetFileSize;
+}
+void create_hdr_specs(ELF64_ProgramHeaderEntryRef pheader, struct  program_header_specs **specs) {
+	struct program_header_specs sp;// = malloc(1000);
+	struct callers funcs; //= malloc(100000);
+	mk_callers(&funcs);
+
+	int *store[sizeof(struct program_header_specs)];
+
+	int attr = funcs.f2(pheader);
+ 	int filesize = funcs.f5(pheader);
+	store[0] = (int*)funcs.f1(pheader);
+	store[1]= &attr;
+	store[3]= (int*)funcs.f3(pheader);
+	store[4]=  (int*)(pheader);
+	store[5] = &filesize;
+	*specs = (struct program_header_specs*)store;
+
+	
 }
 ELF64_SectionHeaderEntryRef get_offset(ELF64_FileRef *file, int index) {
 	ELF64_Off   offst; 
@@ -45,8 +70,7 @@ char* get_offset_dif_type(ELF64_FileRef *file, int index) {
 	ELF64_SymbolTableEntryRef sym = ELF64_FileGetSymbolTableEntryForSection(*file, header, 4);
 
 	offst = ELF64_SymbolTableEntryGetNameOffset(sym);
-
-    	return  ( char * )sym + offst +  index;
+return  ( char * )sym + offst +  index;
 }
 
 
@@ -103,11 +127,14 @@ char* get_index(char *data, int index) {
 	ELF64_ProgramHeaderEntryRef pheader = get_program_entry_ref(&file, index)	;
 	char *nic = (char*)pheader;
 	ELF64_SymbolTableEntryRef entry = mk_sym(&file, section, index);
-	printf("%d\n",ELF64_SymbolTableEntryGetNameOffset(entry));
+	//printf("%d\n",ELF64_SymbolTableEntryGetNameOffset(entry));
 
-	struct program_header_specs specs;
+	struct program_header_specs *specs = malloc(1000);
+	int xx = 0;
+	specs->Attrs = &xx;
 	create_hdr_specs(pheader, &specs);
 	ELF64_SectionHeaderEntryRef hdr = (ELF64_SectionHeaderEntryRef )get_offset_h(&file, index);
+	printf("%d\n",specs->FileSize);
         //struct entry_stuff *ent = get_entry(rice);
 	if(section==NULL) return "fuck";
 	const char *fsection = ELF64_FileGetNameOfSection(file, section);
