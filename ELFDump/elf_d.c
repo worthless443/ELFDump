@@ -12,8 +12,8 @@ struct entry_stuff {
 struct callers {
 	char* (*f1)(ELF64_ProgramHeaderEntryRef);
 	int (*f2)(ELF64_ProgramHeaderEntryRef);
-	char (*f3)(ELF64_ProgramHeaderEntryRef);
-	char (*f4)(ELF64_ProgramHeaderEntryRef);
+	char *(*f3)(ELF64_ProgramHeaderEntryRef);
+	char *(*f4)(ELF64_ProgramHeaderEntryRef);
 	int (*f5)(ELF64_ProgramHeaderEntryRef);
 };
 struct program_header_specs {
@@ -134,11 +134,11 @@ char* get_index(char *data, int index) {
 	specs->Attrs = &xx;
 	create_hdr_specs(pheader, &specs);
 	ELF64_SectionHeaderEntryRef hdr = (ELF64_SectionHeaderEntryRef )get_offset_h(&file, index);
-	printf("%d\n",specs->FileSize);
+	printf("%d\n",*specs->Attrs);
         //struct entry_stuff *ent = get_entry(rice);
 	if(section==NULL) return "fuck";
 	const char *fsection = ELF64_FileGetNameOfSection(file, section);
-	return fsection;
+	return (char*)fsection;
 }
 int check_type_check(FILE *f) {
 	char *data = malloc(4006);
@@ -169,11 +169,11 @@ int main(int arg, char **argv) {
 	//int x = check_type_check(f);
 	//f = realloc(f, x);
 	while(1) {
-		void *rd = fread(buf, 1,1, f);
+		ssize_t rd = fread(buf, 1,1, f);
 		offset+=1;
 		data = realloc(data, offset);
 		buf = data + (offset-1);
-		if(rd==NULL)  break;
+		if(!rd)  break;
 
 	}
 	get_index(data, 4);
