@@ -25,30 +25,20 @@ struct program_header_specs {
 };
 
 
-void mk_callers(struct callers *funcs) {
-	funcs->f1 = 	ELF64_ProgramHeaderEntryGetTypeString;
-	funcs->f2 = ELF64_ProgramHeaderEntryGetAttributes;
-	funcs->f3 = ELF64_ProgramHeaderEntryGetAttributesString;
-	funcs->f4 = ELF64_ProgramHeaderEntryGetTypeString;
-	funcs->f5 = ELF64_ProgramHeaderEntryGetFileSize;
+void mk_callers(int *arr[]) {
+#define size 2 
+	arr[0] = (int*)ELF64_ProgramHeaderEntryGetTypeString;
+	arr[1] = (int*)ELF64_ProgramHeaderEntryGetAttributes;
 }
 void create_hdr_specs(ELF64_ProgramHeaderEntryRef pheader, struct  program_header_specs **specs) {
 	struct program_header_specs sp;// = malloc(1000);
-	struct callers funcs; //= malloc(100000);
-	mk_callers(&funcs);
-
-	int *store[sizeof(struct program_header_specs)];
-
-	int attr = funcs.f2(pheader);
- 	int filesize = funcs.f5(pheader);
-	store[0] = (int*)funcs.f1(pheader);
-	store[1]= &attr;
-	store[3]= (int*)funcs.f3(pheader);
-	store[4]=  (int*)(pheader);
-	store[5] = &filesize;
-	*specs = (struct program_header_specs*)store;
-
-	
+	printf("nigger");
+	int *arr[size];
+	mk_callers(arr);
+	for(int i=0; i<size;i++)  {
+		int name = ((int(*)(ELF64_ProgramHeaderEntryRef))*(arr+i))(pheader);
+	}
+		
 }
 ELF64_SectionHeaderEntryRef get_offset(ELF64_FileRef *file, int index) {
 	ELF64_Off   offst; 
@@ -115,12 +105,12 @@ ELF64_ProgramHeaderEntryRef get_program_entry_ref(ELF64_FileRef *file, int index
 	return (ELF64_ProgramHeaderEntryRef)((char*)header+  offset +  ((1<<index)*index));
 }
 
+int err_return  = 2;
 char* get_index(char *data, int index) {
 	ELF64_FileRef  file;
-	ELF64_HeaderRef header;
+	ELF64_HeaderRef header = NULL;
 	file = ELF64_ReadFromData(data);
 	if(ELF64_FileIsValid(file)) header = ELF64_FileGetHeader(file);
-	//
 	ELF64_SectionHeaderEntryRef section; //=  get_index(data, 4);
 
 	section = get_offset(&file,index); //ERROR;
@@ -132,13 +122,16 @@ char* get_index(char *data, int index) {
 	struct program_header_specs *specs = malloc(1000);
 	int xx = 0;
 	specs->Attrs = &xx;
+	if(header==NULL) 
+		return (char*)&err_return;
 	create_hdr_specs(pheader, &specs);
 	ELF64_SectionHeaderEntryRef hdr = (ELF64_SectionHeaderEntryRef )get_offset_h(&file, index);
-	printf("%d\n",*specs->Attrs);
+	//printf("%d\n",*specs->Attrs);
         //struct entry_stuff *ent = get_entry(rice);
 	if(section==NULL) return "fuck";
 	const char *fsection = ELF64_FileGetNameOfSection(file, section);
 	return (char*)fsection;
+
 }
 int check_type_check(FILE *f) {
 	char *data = malloc(4006);
@@ -176,8 +169,8 @@ int main(int arg, char **argv) {
 		if(!rd)  break;
 
 	}
-	get_index(data, 4);
+	char *getindex = get_index(data, 4);
+	return (*(int*)getindex==2) ? 2 : 0;
 	//printf("%s",get_index(data, 7));
-	return 0;
 
 }
